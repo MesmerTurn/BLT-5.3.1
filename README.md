@@ -77,11 +77,27 @@ If you already have BLT 5.2.4 built from source and only want to add dragon/char
 
 ---
 
+## T7 and T8 Equipment Tiers
+
+This fork adds two tiers beyond the vanilla T6 cap:
+
+| Tier | Cost | What it does |
+|------|------|--------------|
+| **T7** | 600 000 gold | All equipment receives the best available `ItemModifier` (≈ 1.5× stats, same modifier used by tournament champion prizes) |
+| **T8** | 900 000 gold | Same as T7 + hero's HP is doubled via a Harmony patch (`Agent.BaseHealthLimit × 2`) |
+
+These tiers work automatically with the `!equip` command — heroes progress T1 → T2 → … → T6 → T7 → T8 normally.
+
+> **Note:** T7/T8 use the best modifier found in the game's object list. If no modifier with `PriceMultiplier ≥ 1.4` exists (vanilla has them), the items stay at T6 quality.
+
+---
+
 ## What Was Changed
 
 Modified files relative to the original BLT 5.2.4:
 
 - `HeroClassDef.cs` — added `UseDragon` and `UseChariot` properties
-- `EquipHero.cs` — added mount assignment logic based on hero equipment tier
+- `EquipHero.cs` — added dragon/chariot mount logic + T7/T8 tier support
+- `Patches/T8HealthPatch.cs` — new file, Harmony postfix doubling HP at T8
 
 Original BLT 5.2.4: © randomchair — [repository](https://github.com/nwilliams-kobold/Bannerlord-Twitch)

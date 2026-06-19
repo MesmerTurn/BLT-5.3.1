@@ -58,6 +58,16 @@ namespace BLTAdoptAHero
              PropertyOrder(6), UsedImplicitly]
             public int CostTier6 { get; set; } = 400000;
 
+            [LocDisplayName("Cost Tier 7 (Elite)"),
+             LocDescription("Gold cost for Tier 7 equipment — T6 items with 1.5x stat modifiers."),
+             PropertyOrder(7), UsedImplicitly]
+            public int CostTier7 { get; set; } = 600000;
+
+            [LocDisplayName("Cost Tier 8 (Legendary)"),
+             LocDescription("Gold cost for Tier 8 — T6 elite items plus double hero HP in battle."),
+             PropertyOrder(8), UsedImplicitly]
+            public int CostTier8 { get; set; } = 900000;
+
             public int GetTierCost(int tier)
             {
                 return tier switch
@@ -68,7 +78,9 @@ namespace BLTAdoptAHero
                     3 => CostTier4,
                     4 => CostTier5,
                     5 => CostTier6,
-                    _ => CostTier6
+                    6 => CostTier7,
+                    7 => CostTier8,
+                    _ => CostTier8
                 };
             }
 
@@ -151,7 +163,7 @@ namespace BLTAdoptAHero
             int targetTier = Math.Max(0, BLTAdoptAHeroCampaignBehavior.Current.GetEquipmentTier(adoptedHero) +
                              (settings.ReequipInsteadOfUpgrade ? 0 : 1));
 
-            if (targetTier > 5)
+            if (targetTier > 7)
             {
                 onFailure("{=FZh7ZtGp}You cannot upgrade any further!".Translate());
                 return;
@@ -439,6 +451,19 @@ namespace BLTAdoptAHero
                 }
             }
 
+            // T7/T8: apply elite modifier to all equipped items
+            if (targetTier >= 6)
+            {
+                var modifier = GetEliteModifier();
+                if (modifier != null)
+                {
+                    foreach (var slot in adoptedHero.BattleEquipment.YieldFilledEquipmentSlots().ToList())
+                    {
+                        adoptedHero.BattleEquipment[slot.index] = new EquipmentElement(slot.element.Item, modifier);
+                    }
+                }
+            }
+
             // RoT 8.0: assign dragon or chariot by item StringId based on tier
             if (classDef?.UseDragon == true)
             {
@@ -554,6 +579,19 @@ namespace BLTAdoptAHero
         private static readonly string[] ChariotBasicIds  = { "chariot1", "chariot2", "chariot3" };
         private static readonly string[] ChariotAdvancedIds = { "chariot4", "chariot5", "chariot6" };
 
+
+        private static ItemModifier _cachedEliteModifier;
+        public static ItemModifier GetEliteModifier()
+        {
+            if (_cachedEliteModifier != null) return _cachedEliteModifier;
+            // Pick the modifier with the highest price factor — this is typically the "champion" or equivalent
+            _cachedEliteModifier = Game.Current?.ObjectManager
+                ?.GetObjectTypeList<ItemModifier>()
+                ?.Where(m => m.PriceMultiplier >= 1.4f)
+                ?.OrderByDescending(m => m.PriceMultiplier)
+                ?.FirstOrDefault();
+            return _cachedEliteModifier;
+        }
 
         public static string GetDragonId(int tier)
         {
