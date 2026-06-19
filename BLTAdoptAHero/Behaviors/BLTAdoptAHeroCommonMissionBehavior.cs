@@ -262,8 +262,6 @@ namespace BLTAdoptAHero
                         AddKillStreak(affectorHero);
                         BLTAdoptAHeroCampaignBehavior.Current.IncreaseKills(affectorHero, affectedAgent, (WeaponClass)blow.WeaponClass);
                         BLTAdoptAHeroCampaignBehavior.Current.IncrementPrestigeKill(affectorHero);
-                        if (BLTAdoptAHeroModule.CommonConfig.ClassProgression.Enabled)
-                            BLTAdoptAHeroCampaignBehavior.Current.IncrementProgressionKill(affectorHero);
                     }
                 }
 
