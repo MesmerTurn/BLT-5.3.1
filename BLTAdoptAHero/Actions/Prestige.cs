@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using BannerlordTwitch;
 using BannerlordTwitch.Localization;
 using BannerlordTwitch.Rewards;
@@ -131,11 +132,23 @@ namespace BLTAdoptAHero
                 return;
             }
 
+            // Re-equip with T1 gear — custom items are kept via keepFilter
+            var classDef = BLTAdoptAHeroCampaignBehavior.Current.GetEquipmentClass(adoptedHero);
+            var customItems = BLTAdoptAHeroCampaignBehavior.Current.GetCustomItems(adoptedHero);
+            EquipHero.UpgradeEquipment(
+                adoptedHero,
+                targetTier: 0,          // T1
+                classDef: classDef,
+                replaceSameTier: true,
+                customKeepFilter: element => customItems.Any(c => c.Item == element.Item),
+                restrictedItemIds: BLTAdoptAHeroModule.CommonConfig.RestrictedItemIds
+            );
+
             int newPrestige = BLTAdoptAHeroCampaignBehavior.Current.GetPrestigeLevel(adoptedHero);
             string newTitle = prestigeCfg.GetChatTitle(newPrestige);
             string allBonuses = prestigeCfg.GetBonusSummary(newPrestige);
 
-            onSuccess($"{newTitle} {context.UserName} prestiged to P{newPrestige}! Equipment reset to T1. Total bonuses: {allBonuses}");
+            onSuccess($"{newTitle} {context.UserName} prestiged to P{newPrestige}! Standard gear reset to T1, custom items kept. Total bonuses: {allBonuses}");
         }
     }
 }
