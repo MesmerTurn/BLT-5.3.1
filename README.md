@@ -46,7 +46,6 @@ See [MakeBltGreatAgain](https://github.com/MesmerTurn/MakeBltGreatAgain) for the
 ### Other Changes
 
 - Version watermark shows **BLTv5.3.1**
-- `[DEV]` tag for trusted testers (Randomchair22, kanboru201, siemanko_smialy)
 - PrestigeSpeedPatch crash fixed
 
 ---
