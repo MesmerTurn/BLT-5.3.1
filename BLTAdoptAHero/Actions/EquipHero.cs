@@ -451,16 +451,14 @@ namespace BLTAdoptAHero
                 }
             }
 
-            // T7/T8: apply elite modifier to all equipped items
+            // T7/T8: apply best item-type-specific elite modifier to all equipped items
             if (targetTier >= 6)
             {
-                var modifier = GetEliteModifier();
-                if (modifier != null)
+                foreach (var slot in adoptedHero.BattleEquipment.YieldFilledEquipmentSlots().ToList())
                 {
-                    foreach (var slot in adoptedHero.BattleEquipment.YieldFilledEquipmentSlots().ToList())
-                    {
+                    var modifier = GetEliteModifierForItem(slot.element.Item);
+                    if (modifier != null)
                         adoptedHero.BattleEquipment[slot.index] = new EquipmentElement(slot.element.Item, modifier);
-                    }
                 }
             }
 
@@ -580,17 +578,62 @@ namespace BLTAdoptAHero
         private static readonly string[] ChariotAdvancedIds = { "chariot4", "chariot5", "chariot6" };
 
 
-        private static ItemModifier _cachedEliteModifier;
-        public static ItemModifier GetEliteModifier()
+        // Returns the best modifier for a given item type (armor, weapon, mount, harness)
+        public static ItemModifier GetEliteModifierForItem(ItemObject item)
         {
-            if (_cachedEliteModifier != null) return _cachedEliteModifier;
-            // Pick the modifier with the highest price factor — this is typically the "champion" or equivalent
-            _cachedEliteModifier = Game.Current?.ObjectManager
-                ?.GetObjectTypeList<ItemModifier>()
-                ?.Where(m => m.PriceMultiplier >= 1.4f)
-                ?.OrderByDescending(m => m.PriceMultiplier)
-                ?.FirstOrDefault();
-            return _cachedEliteModifier;
+            if (item == null) return null;
+            var all = Game.Current?.ObjectManager?.GetObjectTypeList<ItemModifier>();
+            if (all == null) return null;
+
+            switch (item.Type)
+            {
+                case ItemObject.ItemTypeEnum.HeadArmor:
+                case ItemObject.ItemTypeEnum.BodyArmor:
+                case ItemObject.ItemTypeEnum.LegArmor:
+                case ItemObject.ItemTypeEnum.HandArmor:
+                case ItemObject.ItemTypeEnum.Cape:
+                    return all.Where(m => m.Armor > 0)
+                              .OrderByDescending(m => m.Armor)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.OneHandedWeapon:
+                case ItemObject.ItemTypeEnum.TwoHandedWeapon:
+                case ItemObject.ItemTypeEnum.Polearm:
+                    return all.Where(m => m.Damage > 0)
+                              .OrderByDescending(m => m.Damage)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.Bow:
+                case ItemObject.ItemTypeEnum.Crossbow:
+                    return all.Where(m => m.Speed > 0)
+                              .OrderByDescending(m => m.Speed)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.Arrows:
+                case ItemObject.ItemTypeEnum.Bolts:
+                case ItemObject.ItemTypeEnum.Thrown:
+                    return all.Where(m => m.Damage > 0)
+                              .OrderByDescending(m => m.Damage)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.Shield:
+                    return all.Where(m => m.HitPoints > 0)
+                              .OrderByDescending(m => m.HitPoints)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.Horse:
+                    return all.Where(m => m.MountSpeed > 0 || m.Maneuver > 0)
+                              .OrderByDescending(m => m.MountSpeed + m.Maneuver)
+                              .FirstOrDefault();
+
+                case ItemObject.ItemTypeEnum.HorseHarness:
+                    return all.Where(m => m.Armor > 0)
+                              .OrderByDescending(m => m.Armor)
+                              .FirstOrDefault();
+
+                default:
+                    return null;
+            }
         }
 
         public static string GetDragonId(int tier)
